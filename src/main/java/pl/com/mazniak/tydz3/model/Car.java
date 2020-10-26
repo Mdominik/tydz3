@@ -1,8 +1,18 @@
 package pl.com.mazniak.tydz3.model;
 
 public class Car {
-    public Car(long id, String mark, String model, Color color) {
-        this.id = id;
+    public static long getCarCounter() {
+        return carCounter;
+    }
+
+    public static void setCarCounter(long carCounter) {
+        Car.carCounter = carCounter;
+    }
+
+    private static long carCounter = 0;
+    public Car(String mark, String model, Color color) {
+        carCounter++;
+        this.id = carCounter;
         this.mark = mark;
         this.model = model;
         this.color = color;

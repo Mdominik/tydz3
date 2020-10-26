@@ -1,11 +1,13 @@
 package pl.com.mazniak.tydz3.api;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.com.mazniak.tydz3.model.Car;
 import pl.com.mazniak.tydz3.model.Color;
+import pl.com.mazniak.tydz3.service.CarManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -16,25 +18,23 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/cars")
 public class CarsApi {
-    List<Car> listCars;
+    CarManager carManager;
 
-    public CarsApi() {
-        listCars = new LinkedList<>();
-        listCars.add(new Car(1L, "Audi", "Q7", Color.BLACK));
-        listCars.add(new Car(2L, "BMW", "i3", Color.BLUE));
-        listCars.add(new Car(3L, "Honda", "Civic", Color.RED));
+    @Autowired
+    public CarsApi(CarManager carManager) {
+        this.carManager = carManager;
     }
 
     @GetMapping(value = "/all", produces = {MediaType.APPLICATION_XML_VALUE,
                                             MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<List<Car>> getAllCars() {
-        return ResponseEntity.ok(listCars);
+        return ResponseEntity.ok(carManager.getCarList());
     }
 
     @GetMapping(value = "/{id:[0-9]+}", produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<Car> getCarById(@PathVariable long id) {
-        Optional<Car> first = listCars.stream().filter(car -> car.getId() == id).findFirst();
+        Optional<Car> first = carManager.getCarList().stream().filter(car -> car.getId() == id).findFirst();
         if(first.isPresent()) {
             return ResponseEntity.ok(first.get());
         }
@@ -44,7 +44,7 @@ public class CarsApi {
     @GetMapping(value = "/{color:[A-Za-z]+}", produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<List<Car>> getCarsByColor(@PathVariable String color) {
-        List<Car> list = listCars.stream().filter(car -> car.getColor().toString().equals(color.toUpperCase())).collect(
+        List<Car> list = carManager.getCarList().stream().filter(car -> car.getColor().toString().equals(color.toUpperCase())).collect(
                 Collectors.toList());
         if(!list.isEmpty() && list != null) {
             return ResponseEntity.ok(list);
@@ -55,17 +55,17 @@ public class CarsApi {
     @PostMapping(produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity addCar(@RequestBody Car car) {
-        boolean added = listCars.add(car);
+        boolean added = carManager.addCar(car);
         return added ? new ResponseEntity(HttpStatus.CREATED) : new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping(produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity replaceCar(@RequestBody Car car) {
-        Optional<Car> first = listCars.stream().filter(c -> c.getId() == car.getId()).findFirst();
+        Optional<Car> first = carManager.getCarList().stream().filter(c -> c.getId() == car.getId()).findFirst();
         if(first.isPresent()) {
-            listCars.remove(first.get());
-            listCars.add(car);
+            carManager.removeCar(first.get());
+            carManager.addCar(car);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
@@ -73,7 +73,7 @@ public class CarsApi {
 
     @PatchMapping("/{id}")
     public ResponseEntity editCarById(@PathVariable long id, @RequestBody Car car) {
-        Optional<Car> first = listCars.stream().filter(c -> c.getId() == id).findFirst();
+        Optional<Car> first = carManager.getCarList().stream().filter(c -> c.getId() == id).findFirst();
         if(first.isPresent()) {
             if(car.getColor() != null) {
                 first.get().setColor(car.getColor());
@@ -95,9 +95,9 @@ public class CarsApi {
 
     @DeleteMapping("/{id}")
     public ResponseEntity deleteCarById(@PathVariable long id) {
-        Optional<Car> first = listCars.stream().filter(c -> c.getId() == id).findFirst();
+        Optional<Car> first = carManager.getCarList().stream().filter(c -> c.getId() == id).findFirst();
         if(first.isPresent()) {
-            listCars.remove(first.get());
+            carManager.removeCar(first.get());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
