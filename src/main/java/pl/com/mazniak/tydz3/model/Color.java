@@ -8,5 +8,12 @@ public enum Color {
     GREEN,
     YELLOW,
     GRAY,
-    BROWN
+    BROWN,
+    TEAL,
+    MAGENTA,
+    PINK,
+    PURPLE,
+    BEIGE,
+    SILVER,
+    GOLDEN
 }
