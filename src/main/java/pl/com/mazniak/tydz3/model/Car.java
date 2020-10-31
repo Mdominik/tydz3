@@ -17,7 +17,13 @@ public class Car {
         this.model = model;
         this.color = color;
     }
-
+    public Car(CarDTO carDTO) {
+        carCounter++;
+        this.id = carCounter;
+        this.mark = carDTO.getMark();
+        this.model = carDTO.getModel();
+        this.color = carDTO.getColor();
+    }
     public long getId() {
         return id;
     }

@@ -6,9 +6,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.com.mazniak.tydz3.model.Car;
+import pl.com.mazniak.tydz3.model.CarDTO;
 import pl.com.mazniak.tydz3.model.Color;
 import pl.com.mazniak.tydz3.service.CarManager;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/cars")
+@CrossOrigin
 public class CarsApi {
     CarManager carManager;
 
@@ -25,14 +28,17 @@ public class CarsApi {
         this.carManager = carManager;
     }
 
-    @GetMapping(value = "/all", produces = {MediaType.APPLICATION_XML_VALUE,
-                                            MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/color-values")
+    public ResponseEntity<List<Color>> getPossibleColors() {
+        return ResponseEntity.ok(Arrays.asList(Color.values()));
+    }
+
+    @GetMapping(value = "/all")
     public ResponseEntity<List<Car>> getAllCars() {
         return ResponseEntity.ok(carManager.getCarList());
     }
 
-    @GetMapping(value = "/{id:[0-9]+}", produces = {MediaType.APPLICATION_XML_VALUE,
-            MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/{id:[0-9]+}")
     public ResponseEntity<Car> getCarById(@PathVariable long id) {
         Optional<Car> first = carManager.getCarList().stream().filter(car -> car.getId() == id).findFirst();
         if(first.isPresent()) {
@@ -41,8 +47,7 @@ public class CarsApi {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping(value = "/{color:[A-Za-z]+}", produces = {MediaType.APPLICATION_XML_VALUE,
-            MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/{color:[A-Za-z]+}")
     public ResponseEntity<List<Car>> getCarsByColor(@PathVariable String color) {
         List<Car> list = carManager.getCarList().stream().filter(car -> car.getColor().toString().equals(color.toUpperCase())).collect(
                 Collectors.toList());
@@ -52,15 +57,13 @@ public class CarsApi {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping(produces = {MediaType.APPLICATION_XML_VALUE,
-            MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity addCar(@RequestBody Car car) {
-        boolean added = carManager.addCar(car);
+    @PostMapping
+    public ResponseEntity addCar(@RequestBody CarDTO carDTO) {
+        boolean added = carManager.addCarDTO(carDTO);
         return added ? new ResponseEntity(HttpStatus.CREATED) : new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
-    @PutMapping(produces = {MediaType.APPLICATION_XML_VALUE,
-            MediaType.APPLICATION_JSON_VALUE})
+    @PutMapping
     public ResponseEntity replaceCar(@RequestBody Car car) {
         Optional<Car> first = carManager.getCarList().stream().filter(c -> c.getId() == car.getId()).findFirst();
         if(first.isPresent()) {
